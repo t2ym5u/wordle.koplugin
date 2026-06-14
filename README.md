@@ -2,6 +2,15 @@
 
 A Wordle plugin for [KOReader](https://github.com/koreader/koreader).
 
+
+## Screenshot
+
+*(Screenshot to be added.)*
+
+## Rules
+
+Guess the secret 5-letter word in 6 attempts. After each guess, tiles reveal: **green** = right letter right spot; **yellow** = right letter wrong spot; **grey** = letter not in word. The keyboard tracks used letters.
+
 ## Concept
 
 Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is marked:
@@ -9,7 +18,7 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 - **Present** — letter is in the word but in the wrong position
 - **Absent** — letter is not in the word
 
-## Planned Features
+## Features
 
 - **Multiple languages** — word lists for EN, FR, DE, ES (and more)
 - **Configurable word length** — 4, 5 or 6 letters
@@ -28,6 +37,7 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 | Delete last letter | Tap **⌫** |
 | Submit guess | Tap **Enter** |
 | New random game | Tap **New game** |
+| Show rules | Tap **Rules** |
 
 ## Why e-ink friendly?
 

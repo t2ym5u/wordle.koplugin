@@ -30,6 +30,34 @@ local DeviceScreen = Device.screen
 -- WordleScreen
 -- ---------------------------------------------------------------------------
 
+local GAME_RULES_EN = _([[
+Wordle — Rules
+
+Guess the secret 5-letter word in 6 attempts.
+
+After each guess:
+• Green tile — the letter is in the correct position.
+• Yellow tile — the letter is in the word but in the wrong position.
+• Grey tile — the letter is not in the word.
+
+Use the on-screen keyboard to enter letters. Press ↵ to submit a guess, ⌫ to delete.
+The keyboard shows the status of each letter used so far.
+]])
+
+local GAME_RULES_FR = [[
+Wordle — Règles
+
+Devinez le mot secret de 5 lettres en 6 tentatives.
+
+Après chaque proposition :
+• Case verte — la lettre est à la bonne position.
+• Case jaune — la lettre est dans le mot mais à la mauvaise position.
+• Case grise — la lettre n'est pas dans le mot.
+
+Utilisez le clavier à l'écran pour entrer des lettres. Appuyez sur ↵ pour valider, sur ⌫ pour effacer.
+Le clavier affiche l'état de chaque lettre utilisée.
+]]
+
 local WordleScreen = ScreenBase:extend{}
 
 -- Keyboard rows
@@ -70,6 +98,7 @@ function WordleScreen:buildLayout()
             { text = _("New"), callback = function() self:onNewGame() end },
             { id = "lang_btn", text = self:_langLabel(),
               callback = function() self:openLangMenu() end },
+            self:makeRulesButtonConfig(GAME_RULES_EN, GAME_RULES_FR),
             self:makeCloseButtonConfig(),
         }},
     }
