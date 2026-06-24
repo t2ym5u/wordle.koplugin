@@ -94,7 +94,7 @@ function WordleBoardWidget:paintTo(bb, x, y)
                 local tc = (state == WordleBoard.STATE_CORRECT) and C_TEXT_LITE or C_TEXT_DARK
                 local m  = RenderText:sizeUtf8Text(0, cell, self.face, letter, true, false)
                 local tx = cx + math.floor((cell - m.x) / 2)
-                local ty = cy + math.floor((cell - (m.y_bottom - m.y_top)) / 2) + m.y_top
+                local ty = cy + math.floor((cell + m.y_top - m.y_bottom) / 2)
                 RenderText:renderUtf8Text(bb, tx, ty, self.face, letter, true, false, tc)
             end
         end

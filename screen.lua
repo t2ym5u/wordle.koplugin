@@ -7,6 +7,7 @@ local function lrequire(name)
     return package.loaded[key]
 end
 
+local Blitbuffer      = require("ffi/blitbuffer")
 local ButtonTable     = require("ui/widget/buttontable")
 local Device          = require("device")
 local FrameContainer  = require("ui/widget/container/framecontainer")
@@ -83,7 +84,7 @@ end
 
 function WordleScreen:buildLayout()
     local sw           = DeviceScreen:getWidth()
-    local sh           = DeviceScreen:getHeight()
+    local sh = DeviceScreen:getHeight()
     local is_landscape = self:isLandscape()
 
     local btn_width = is_landscape
@@ -125,18 +126,25 @@ function WordleScreen:buildLayout()
         self.board_widget,
     }
 
-    -- Keyboard
-    self.key_buttons = {}
+    -- Keyboard (keys coloured by best known state: dark=correct, grey=absent)
     local key_rows_cfg = {}
     for _, row in ipairs(KEY_ROWS) do
         local btns = {}
         for _, key in ipairs(row) do
-            local k = key
-            btns[#btns + 1] = {
+            local k  = key
+            local ks = self.board.key_state[k]
+            local btn = {
                 id       = "key_" .. k,
                 text     = k,
                 callback = function() self:onKeyPress(k) end,
             }
+            if ks == WordleBoard.STATE_CORRECT then
+                btn.background = Blitbuffer.COLOR_GRAY_3
+                btn.text_color = Blitbuffer.COLOR_WHITE
+            elseif ks == WordleBoard.STATE_ABSENT or ks == WordleBoard.STATE_PRESENT then
+                btn.background = Blitbuffer.COLOR_GRAY_D
+            end
+            btns[#btns + 1] = btn
         end
         key_rows_cfg[#key_rows_cfg + 1] = btns
     end
@@ -189,8 +197,9 @@ function WordleScreen:onKeyPress(key)
             self:updateStatus(_("Not in word list!"))
             return
         end
-        self.board_widget:refresh()
-        self:updateStatus()
+        -- Rebuild layout so keyboard reflects updated key_state colours.
+        self:buildLayout()
+        UIManager:setDirty(self, function() return "ui", self.dimen end)
         self.plugin:saveState(self.board:serialize())
     elseif key == "⌫" then
         self.board:deleteLetter()
