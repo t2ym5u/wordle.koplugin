@@ -92,18 +92,13 @@ function WordleScreen:buildLayout()
         or  math.floor(sw * 0.9)
 
     -- Top bar
-    local top_buttons = ButtonTable:new{
-        shrink_unneeded_width = true,
-        width   = btn_width,
-        buttons = {{
-            { text = _("New"), callback = function() self:onNewGame() end },
-            { id = "lang_btn", text = self:_langLabel(),
-              callback = function() self:openLangMenu() end },
+    local title_bar = self:buildTitleBar(_("Wordle"), function()
+        return {
+            { text = _("New game"),     callback = function() self:onNewGame() end },
+            { text = self:_langLabel(), callback = function() self:openLangMenu() end },
             self:makeRulesButtonConfig(GAME_RULES_EN, GAME_RULES_FR),
-            self:makeCloseButtonConfig(),
-        }},
-    }
-    self.lang_btn = top_buttons:getButtonById("lang_btn")
+        }
+    end)
 
     -- Board widget
     local max_cell = is_landscape and math.floor(sh * 0.7) or math.floor(sw * 0.9)
@@ -157,18 +152,17 @@ function WordleScreen:buildLayout()
     if is_landscape then
         local right = VerticalGroup:new{
             align = "center",
-            top_buttons,
-            VerticalSpan:new{ width = Size.span.vertical_large },
             self.status_text,
             VerticalSpan:new{ width = Size.span.vertical_large },
             self.keyboard_widget,
         }
-        self.layout = HorizontalGroup:new{
+        local content = HorizontalGroup:new{
             align  = "center",
             board_frame,
             HorizontalSpan:new{ width = Size.span.horizontal_default },
             right,
         }
+        self:buildLandscapeLayout(title_bar, content)
     else
         local footer = VerticalGroup:new{
             align = "center",
@@ -176,9 +170,8 @@ function WordleScreen:buildLayout()
             VerticalSpan:new{ width = Size.span.vertical_large },
             self.status_text,
         }
-        self:buildPortraitLayout(top_buttons, board_frame, footer)
+        self:buildPortraitLayout(title_bar, board_frame, footer)
     end
-    self[1] = self.layout
     self:updateStatus()
 end
 
