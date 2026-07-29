@@ -8,7 +8,6 @@ local function lrequire(name)
 end
 
 local Blitbuffer      = require("ffi/blitbuffer")
-local ButtonTable     = require("ui/widget/buttontable")
 local Device          = require("device")
 local FrameContainer  = require("ui/widget/container/framecontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
@@ -22,6 +21,7 @@ local T               = require("ffi/util").template
 
 local ScreenBase        = require("screen_base")
 local MenuHelper        = require("menu_helper")
+local KeyboardWidget    = lrequire("common/keyboard_widget")
 local WordleBoard       = lrequire("board")
 local WordleBoardWidget = lrequire("board_widget")
 
@@ -60,13 +60,6 @@ Le clavier affiche l'état de chaque lettre utilisée.
 ]]
 
 local WordleScreen = ScreenBase:extend{}
-
--- Keyboard rows
-local KEY_ROWS = {
-    {"Q","W","E","R","T","Y","U","I","O","P"},
-    {"A","S","D","F","G","H","J","K","L"},
-    {"↵","Z","X","C","V","B","N","M","⌫"},
-}
 
 function WordleScreen:init()
     local state = self.plugin:loadState()
@@ -121,32 +114,19 @@ function WordleScreen:buildLayout()
         self.board_widget,
     }
 
-    -- Keyboard (keys coloured by best known state: dark=correct, grey=absent)
-    local key_rows_cfg = {}
-    for _, row in ipairs(KEY_ROWS) do
-        local btns = {}
-        for _, key in ipairs(row) do
-            local k  = key
+    self.keyboard_widget = KeyboardWidget.build{
+        width     = btn_width,
+        layout    = (self.board.lang == "fr") and "azerty" or "qwerty",
+        backspace = true,
+        enter     = true,
+        onKey     = function(k) self:onVirtualKey(k) end,
+        keyColor  = function(k)
             local ks = self.board.key_state[k]
-            local btn = {
-                id       = "key_" .. k,
-                text     = k,
-                callback = function() self:onKeyPress(k) end,
-            }
-            if ks == WordleBoard.STATE_CORRECT then
-                btn.background = Blitbuffer.COLOR_GRAY_3
-                btn.text_color = Blitbuffer.COLOR_WHITE
-            elseif ks == WordleBoard.STATE_ABSENT or ks == WordleBoard.STATE_PRESENT then
-                btn.background = Blitbuffer.COLOR_GRAY_D
-            end
-            btns[#btns + 1] = btn
-        end
-        key_rows_cfg[#key_rows_cfg + 1] = btns
-    end
-    self.keyboard_widget = ButtonTable:new{
-        shrink_unneeded_width = true,
-        width   = btn_width,
-        buttons = key_rows_cfg,
+            if ks == WordleBoard.STATE_CORRECT then return Blitbuffer.COLOR_GRAY_4 end
+            if ks == WordleBoard.STATE_PRESENT then return Blitbuffer.COLOR_GRAY_9 end
+            if ks == WordleBoard.STATE_ABSENT  then return Blitbuffer.COLOR_GRAY_D end
+            return nil
+        end,
     }
 
     if is_landscape then
@@ -175,7 +155,7 @@ function WordleScreen:buildLayout()
     self:updateStatus()
 end
 
-function WordleScreen:onKeyPress(key)
+function WordleScreen:onVirtualKey(key)
     if key == "↵" then
         local result = self.board:submit()
         if result == "short" then
