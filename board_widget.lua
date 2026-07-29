@@ -1,3 +1,12 @@
+local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
+local function lrequire(name)
+    local key = _dir .. name
+    if not package.loaded[key] then
+        package.loaded[key] = assert(loadfile(_dir .. name .. ".lua"))()
+    end
+    return package.loaded[key]
+end
+
 local Blitbuffer     = require("ffi/blitbuffer")
 local Device         = require("device")
 local Font           = require("ui/font")
@@ -7,10 +16,10 @@ local InputContainer = require("ui/widget/container/inputcontainer")
 local RenderText     = require("ui/rendertext")
 local UIManager      = require("ui/uimanager")
 
-local gwb      = require("grid_widget_base")
+local gwb      = lrequire("common/grid_widget_base")
 local drawLine = gwb.drawLine
 
-local WordleBoard = require("board")
+local WordleBoard = lrequire("board")
 local C_BG        = Blitbuffer.COLOR_WHITE
 local C_BORDER    = Blitbuffer.COLOR_BLACK
 local C_EMPTY     = Blitbuffer.COLOR_WHITE
