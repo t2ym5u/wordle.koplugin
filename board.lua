@@ -147,18 +147,22 @@ local function getWordList(lang, len)
     return filterWords(WORDS[lang] or WORDS["en"], len)
 end
 
+local _en_set = nil
+local function loadEnSet()
+    if not _en_set then
+        _en_set = {}
+        for _, w in ipairs(WORDS["en"]) do _en_set[w] = true end
+    end
+    return _en_set
+end
+
 -- Check if a word is valid for the current lang
 local function isValidWord(lang, word)
     if lang == "fr" then
         local fr = loadFrWords()
         return fr._set[word] == true
     end
-    -- EN: accept any string (no exhaustive list)
-    local list = WORDS["en"]
-    for _, w in ipairs(list) do
-        if w == word then return true end
-    end
-    return true  -- EN is permissive
+    return loadEnSet()[word] == true
 end
 
 local WORD_LEN   = 5
