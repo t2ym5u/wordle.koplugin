@@ -84,6 +84,8 @@ function WordleScreen:buildLayout()
         and math.max(math.floor(sw * 0.38), 120)
         or  math.floor(sw * 0.9)
 
+    self.status_text:setMaxWidth(btn_width)
+
     -- Top bar
     local title_bar = self:buildTitleBar(_("Wordle"), function()
         return {
