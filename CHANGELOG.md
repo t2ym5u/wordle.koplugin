@@ -1,0 +1,19 @@
+# Changelog
+
+All notable changes to this project will be documented in this file.
+
+## [1.2.0] - 2026-09-30
+
+### Added
+- Separate answer and guess lists for English, the way Wordle itself splits
+  them: 2,307 common words can be drawn as the answer, while 8,637 are accepted
+  as guesses.
+
+### Fixed
+- Ordinary English guesses were rejected as "not a word" — STARE, TEARS, IRATE,
+  NOTES, QUIRK, FJORD, LYMPH and ADIEU among them. A single 716-word list was
+  serving as both the answer pool and the entire notion of "is that a word".
+- README advertised word lists for "EN, FR, DE, ES (and more)" and a
+  configurable 4/5/6 word length; only EN and FR have ever existed, and nothing
+  sets the word length. That path also reached `math.random(0)`, since every
+  bundled list is 5-letter only; it is now guarded.

@@ -20,8 +20,8 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 
 ## Features
 
-- **Multiple languages** — word lists for EN, FR, DE, ES (and more)
-- **Configurable word length** — 4, 5 or 6 letters
+- **Two languages** — EN and FR
+- **Separate answer and guess lists (EN)** — 2,307 common words can be the answer, while 8,637 are accepted as guesses, so ordinary English words are never rejected as "not a word"
 - **On-screen keyboard** — shows letter status at a glance
 - **Hard mode** — revealed hints must be used in subsequent guesses
 - **Daily puzzle** — one puzzle per day derived from the date (reproducible seed)

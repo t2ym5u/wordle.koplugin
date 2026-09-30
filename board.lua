@@ -4,130 +4,40 @@ local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 -- Word lists
 -- ---------------------------------------------------------------------------
 
--- FR: loaded lazily from words_fr.lua (5884 words, CC0)
-local _fr_words = nil
-local function loadFrWords()
-    if not _fr_words then
-        local path = _dir .. "words_fr.lua"
-        local fn = loadfile(path)
-        _fr_words = fn and fn() or {}
-        -- build lookup set for validation
-        _fr_words._set = {}
-        for _, w in ipairs(_fr_words) do _fr_words._set[w] = true end
-    end
-    return _fr_words
-end
+-- Two files per language, the way Wordle itself splits them:
+--   words_<lang>.lua    -- words common enough to be a fair answer
+--   guesses_<lang>.lua  -- everything else the game still accepts as a guess
+--
+-- English used to be a single 716-word table inlined right here, serving as
+-- the answer pool AND as the whole notion of "is that even a word", so
+-- ordinary guesses (STARE, TEARS, IRATE, NOTES, FJORD, LYMPH...) came back
+-- as "not a word". guesses_<lang>.lua is optional -- French ships answers
+-- only for now and behaves exactly as before.
+--
+-- Loaded lazily: the English guess list alone is several thousand words, and
+-- a player who never opens Wordle should not pay for it.
 
--- Bundled 5-letter word lists per language
-local WORDS = {
-    en = {
-        "ABOUT","ABOVE","ABUSE","ACUTE","ADMIT","ADOPT","ADULT","AFTER","AGAIN",
-        "AGENT","AGREE","AHEAD","ALARM","ALBUM","ALERT","ALIEN","ALIGN","ALIVE",
-        "ALLEY","ALLOW","ALONE","ALONG","ALTER","AMONG","ANGEL","ANGER","ANGLE",
-        "ANGRY","ANIME","ANNEX","APART","APPLE","APPLY","ARENA","ARGUE","ARISE",
-        "ARMOR","ARRAY","ARROW","ASIDE","ASSET","ATLAS","ATTIC","AUDIO","AUDIT",
-        "AVOID","AWARE","AWFUL","BAKER","BASES","BASIC","BASIS","BEACH","BEARD",
-        "BEAST","BEGIN","BEING","BELOW","BENCH","BIBLE","BLACK","BLADE","BLAME",
-        "BLAND","BLANK","BLAST","BLAZE","BLEED","BLEND","BLIND","BLOCK","BLOOD",
-        "BLOOM","BLOWN","BOARD","BONUS","BOOST","BOOTH","BOUND","BOXER","BRAIN",
-        "BRAND","BRAVE","BREAD","BREAK","BRIDE","BRIEF","BRING","BROAD","BROOK",
-        "BROWN","BUILD","BUILT","BURST","BUYER","CABIN","CAMEL","CANDY","CARGO",
-        "CARRY","CATCH","CAUSE","CHAIN","CHAIR","CHALK","CHARM","CHART","CHASE",
-        "CHEAP","CHECK","CHEEK","CHEER","CHESS","CHEST","CHICK","CHIEF","CHILD",
-        "CHINA","CHIPS","CIVIL","CLAIM","CLASS","CLEAN","CLEAR","CLIMB","CLOCK",
-        "CLONE","CLOSE","CLOUD","COACH","COAST","COBRA","CODED","COMET","COMIC",
-        "COMMA","CORAL","COUNT","COURT","COVER","CRACK","CRAFT","CRANE","CRASH",
-        "CRAZY","CREAM","CRIME","CRISP","CROSS","CROWD","CROWN","CRUSH","CRYPT",
-        "CURVE","CYCLE","DAILY","DANCE","DARTS","DATED","DEATH","DEBUT","DECOY",
-        "DELAY","DENSE","DEPOT","DEPTH","DERBY","DEVIL","DIARY","DISCO","DODGE",
-        "DOING","DOUBT","DOUGH","DRAFT","DRAIN","DRAMA","DRANK","DRAWL","DRAWN",
-        "DREAM","DRESS","DRIFT","DRINK","DRIVE","DRONE","DROWN","DRYER","DYING",
-        "EAGLE","EARLY","EARTH","EIGHT","ELITE","EMAIL","EMBER","EMPTY","ENEMY",
-        "ENJOY","ENTER","ENTRY","EQUAL","ESSAY","EVADE","EVENT","EVERY","EXACT",
-        "EXALT","EXAM","EXILE","EXIST","EXTRA","FABLE","FAITH","FANCY","FAULT",
-        "FEAST","FENCE","FERAL","FEVER","FIBER","FIELD","FIFTH","FIFTY","FIGHT",
-        "FINAL","FIRST","FIXED","FLAME","FLASH","FLASK","FLEET","FLESH","FLICK",
-        "FLOCK","FLOOD","FLOOR","FLOUR","FLOWN","FLUID","FLUSH","FOCUS","FORCE",
-        "FORGE","FORTH","FOUND","FRAME","FRANK","FRAUD","FRESH","FRONT","FROST",
-        "FRUIT","FULLY","FUNKY","FUNNY","GAINS","GAUGE","GHOST","GIANT","GIVEN",
-        "GLAND","GLASS","GLOBE","GLOOM","GLORY","GLOSS","GLOVE","GOING","GRACE",
-        "GRADE","GRAIN","GRAND","GRANT","GRAPE","GRASP","GRASS","GRAVE","GREAT",
-        "GREED","GREEN","GREET","GRIEF","GRILL","GRIND","GROAN","GROVE","GROWN",
-        "GUARD","GUESS","GUILD","GUILE","GUISE","GUSTO","HABIT","HAIKU","HANDS",
-        "HAPPY","HARSH","HASTE","HATCH","HEART","HEDGE","HENCE","HERTZ","HINGE",
-        "HOBBY","HOLLY","HONOR","HORSE","HOTEL","HOTEL","HOUSE","HUMAN","HUMID",
-        "HUMOR","HURRY","IMAGE","IMPLY","INFER","INNER","INPUT","INTER","INTRO",
-        "ISSUE","IVORY","JAPAN","JEWEL","JOINT","JOKER","JOLLY","JUDGE","JUICE",
-        "JUICY","JUMBO","KARMA","KAYAK","KNACK","KNEEL","KNIFE","KNOCK","KNOWN",
-        "LABEL","LARGE","LASER","LATCH","LATER","LEARN","LEASE","LEAST","LEAVE",
-        "LEVEL","LIGHT","LIMIT","LINER","LIVER","LOCAL","LODGE","LOGIC","LOOSE",
-        "LOWER","LUCKY","LUNAR","LUNCH","MAGIC","MAKER","MANOR","MAPLE","MARCH",
-        "MATCH","MAYOR","MEDIA","MERCY","MERGE","MERIT","METAL","MIGHT","MINOR",
-        "MINUS","MIXER","MODAL","MODEL","MONEY","MONTH","MORAL","MOUND","MOUNT",
-        "MOUSE","MOVED","MOVIE","MUSIC","NAVAL","NERVE","NEVER","NIGHT","NOBLE",
-        "NORTH","NOTCH","NOTED","NOVEL","NURSE","NYMPH","OCEAN","OFFER","OFTEN",
-        "OLIVE","ONION","ONSET","OPERA","ORBIT","ORDER","OTHER","OUTER","OWNED",
-        "OWNER","OXIDE","OZONE","PAINT","PANEL","PANIC","PAPER","PATCH","PAUSE",
-        "PEACE","PEACH","PEARL","PEDAL","PENNY","PHASE","PIANO","PILOT","PINCH",
-        "PIXEL","PIZZA","PLACE","PLAIN","PLANE","PLANT","PLATE","PLAZA","PLEAD",
-        "PLUCK","POINT","POLAR","PORCH","POWER","PRESS","PRICE","PRIDE","PRIME",
-        "PRINT","PRIZE","PROBE","PRONE","PROOF","PROSE","PROUD","PRUNE","PULSE",
-        "PUPIL","QUEEN","QUERY","QUEST","QUEUE","QUICK","QUIET","QUOTA","QUOTE",
-        "RADAR","RADIO","RAISE","RALLY","RANGE","RAPID","RATIO","REACH","REACT",
-        "READY","REALM","REBEL","REFER","REIGN","RELAX","REMIX","RENAL","REPAY",
-        "REPEL","REPLY","RETRO","RIDER","RIDGE","RIFLE","RIGID","RISKY","RIVAL",
-        "RIVER","ROBOT","ROCKY","RODEO","ROUGE","ROUGH","ROUND","ROUTE","RUGBY",
-        "RULER","RURAL","RUSTY","SADLY","SAINT","SAUCE","SCALE","SCENE","SCORE",
-        "SCOUT","SEIZE","SENSE","SERVE","SETUP","SEVEN","SHAFT","SHAKE","SHALL",
-        "SHAME","SHAPE","SHARE","SHARK","SHARP","SHELF","SHELL","SHIFT","SHINE",
-        "SHIRT","SHOCK","SHORE","SHORT","SHOUT","SIGHT","SINCE","SIXTH","SIXTY",
-        "SKILL","SKULL","SLATE","SLAVE","SLEEP","SLICE","SLIDE","SLOPE","SMART",
-        "SMELL","SMILE","SMOKE","SNAKE","SOLAR","SOLVE","SOUTH","SPACE","SPARE",
-        "SPARK","SPEAK","SPEED","SPEND","SPINE","SPITE","SPLIT","SPOKE","SPOON",
-        "SQUAD","STAGE","STAKE","STALE","STALK","STAND","STARK","START","STATE",
-        "STEAL","STEAM","STEEL","STEEP","STEER","STERN","STICK","STIFF","STILL",
-        "STOCK","STONE","STORE","STORM","STORY","STOVE","STRAP","STRAY","STRIP",
-        "STUDY","STYLE","SUITE","SUPER","SURGE","SWAMP","SWEAR","SWEEP","SWEET",
-        "SWIFT","SWORD","TABLE","TAKEN","TASTE","TEACH","TEETH","TENSE","TENTH",
-        "TERMS","THEFT","THEME","THERE","THICK","THING","THINK","THIRD","THORN",
-        "THREE","THREW","THROW","THUMB","TIGER","TIGHT","TIMER","TIRED","TITLE",
-        "TODAY","TOKEN","TORCH","TOTAL","TOUCH","TOUGH","TRACE","TRACK","TRADE",
-        "TRAIL","TRAIN","TRAIT","TRAMP","TRASH","TRIAL","TRIBE","TRICK","TRIED",
-        "TROOP","TRUCK","TRUMP","TRUNK","TRUST","TRUTH","TUMOR","TUNED","TWEAK",
-        "TWICE","TWIST","TYPED","ULCER","ULTRA","UNCLE","UNDER","UNIFY","UNION",
-        "UNITE","UNITY","UNTIL","UPPER","UPSET","URBAN","USAGE","USHER","USUAL",
-        "VALVE","VALUE","VENUE","VIDEO","VIGOR","VIRAL","VIRUS","VITAL","VOCAL",
-        "VODKA","VOICE","VOTER","VAGUE","WASTE","WATCH","WATER","WEAVE","WEEDY",
-        "WEIRD","WHOLE","WIDER","WIDOW","WINDY","WITCH","WORLD","WORRY","WORSE",
-        "WORST","WOULD","WOUND","WOVEN","WRITE","WRONG","YACHT","YEARN","YIELD",
-        "YOUNG","YOUTH","ZEBRA","ZESTY","ZONES","ZOOMS",
-    },
-    fr = {
-        "ABORD","ABRIS","ACIER","ACTES","ADIEU","AIMER","AINSI","AJOUTER","ALBUM",
-        "ALLÉE","ALLEZ","ALORS","ARBRE","ARDEUR","ARGENT","ARMES","ARRÊT","ASPECT",
-        "AVION","AVOIR","BATEAU","BELLE","BLANC","BOIRE","BOITE","BRAVO","BRISE",
-        "CALME","CASER","CAUSE","CERNE","CHAMP","CHARS","CHOIX","CIBLE","CITER",
-        "COEUR","CONTE","CORPS","COUDE","COUP","COURT","CUIRE","DANSE","DATES",
-        "DÉBUT","DENSE","DÉSIR","DETTE","DIVIN","DONNÉ","DOUZE","DROIT","DURER",
-        "ÉCRAN","ÉGALE","ÉLÈVE","ENFIN","ENTRE","ENVIE","ÉPOUX","ESCALE","ÉTAPE",
-        "ÉTUDE","EXAMEN","FAÇON","FAIRE","FATAL","FEMME","FENTE","FIÈRE","FLEUR",
-        "FOLIE","FORCE","FORUM","FOYER","FRANC","FRUIT","FUTUR","GARDE","GENRE",
-        "GLACE","GLOIRE","GOLFE","GRÂCE","GRAIN","GRAND","GRÈVE","GUIDE","HASARD",
-        "HERBE","HONTE","HOTEL","HUILE","HUMAIN","IDÉAL","IMAGE","IMPÔT","INTIME",
-        "IRAIT","JETON","JOUER","JOUER","LAPIN","LARGE","LASER","LEVER","LIBRE",
-        "LIGNE","LINGE","LISTE","LOCAL","LONGS","LOUER","LUTTE","MAGIE","MAIN",
-        "MASSE","MATCH","MONDE","MONTE","MORAL","MOTIF","MOULE","MOYEN","MURER",
-        "NAPPE","NŒUD","NUAGE","NOBLE","NORME","NOTER","NOUER","OFFRE","OLIVE",
-        "ORDRE","PALIER","PÂLE","PAIRE","PAIX","PASSE","PAYÉ","PENTE","PERTE",
-        "PIÈCE","PLAGE","PLEIN","POIDS","POINT","PORTE","POSER","PRÊT","PRIME",
-        "PRISE","PROIE","PROSE","QUEUE","QUÊTE","RÉELS","RÈGLE","REINE","RÊVER",
-        "ROUTE","ROYAL","SABLE","SALLE","SAULE","SAVOIR","SIGNE","SINGE","SOBRE",
-        "SONGE","SUITE","SUJET","SÛRETÉ","TABLE","TACHE","TAILLE","TEINT","TENIR",
-        "TERME","TEXTE","TITRE","TOILE","TONNE","TOTAL","TOURS","TRACE","TRAIN",
-        "TRAIT","TRAME","TRÔNE","ULTRA","UNION","UNITÉ","USURE","VAGUE","VALEUR",
-        "VEILLE","VITRE","VIVRE","VŒUX","VOTER","VOULOIR","ZONES",
-    },
-}
+local _lists = {}
+
+local function loadLang(lang)
+    local entry = _lists[lang]
+    if entry then return entry end
+
+    entry = { answers = {}, valid = {} }
+    local answers_fn = loadfile(_dir .. "words_" .. lang .. ".lua")
+    entry.answers = (answers_fn and answers_fn()) or {}
+    for _, w in ipairs(entry.answers) do entry.valid[w] = true end
+
+    -- Every answer is also a valid guess, so guesses_<lang>.lua only needs to
+    -- carry the extras -- no duplication between the two files.
+    local guesses_fn = loadfile(_dir .. "guesses_" .. lang .. ".lua")
+    if guesses_fn then
+        for _, w in ipairs(guesses_fn() or {}) do entry.valid[w] = true end
+    end
+
+    _lists[lang] = entry
+    return entry
+end
 
 -- Filter to exact word_len
 local function filterWords(list, len)
@@ -138,31 +48,14 @@ local function filterWords(list, len)
     return out
 end
 
--- Get word list for lang (returns array)
+-- Candidate answers for lang (returns array)
 local function getWordList(lang, len)
-    if lang == "fr" then
-        local fr = loadFrWords()
-        return filterWords(fr, len)
-    end
-    return filterWords(WORDS[lang] or WORDS["en"], len)
+    return filterWords(loadLang(lang).answers, len)
 end
 
-local _en_set = nil
-local function loadEnSet()
-    if not _en_set then
-        _en_set = {}
-        for _, w in ipairs(WORDS["en"]) do _en_set[w] = true end
-    end
-    return _en_set
-end
-
--- Check if a word is valid for the current lang
+-- Accepted as a guess: an answer, or one of the extra words for that language.
 local function isValidWord(lang, word)
-    if lang == "fr" then
-        local fr = loadFrWords()
-        return fr._set[word] == true
-    end
-    return loadEnSet()[word] == true
+    return loadLang(lang).valid[word] == true
 end
 
 local WORD_LEN   = 5
@@ -207,7 +100,12 @@ end
 
 function WordleBoard:_newWord()
     local list = getWordList(self.lang, self.word_len)
-    if #list == 0 then list = filterWords(WORDS["en"], self.word_len) end
+    if #list == 0 then list = filterWords(loadLang("en").answers, self.word_len) end
+    -- Every bundled list is 5-letter only, so a word_len of anything else
+    -- leaves both filters empty and math.random(0) would raise. Nothing sets
+    -- word_len today, but a saved game from a future build might.
+    if #list == 0 then list = loadLang("en").answers end
+    if #list == 0 then return end
     self.secret = list[math.random(#list)]
 end
 
