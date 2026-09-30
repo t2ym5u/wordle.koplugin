@@ -5,7 +5,7 @@ A Wordle plugin for [KOReader](https://github.com/koreader/koreader).
 
 ## Screenshot
 
-*(Screenshot to be added.)*
+![Screenshot](images/wordle.png)
 
 ## Rules
 
