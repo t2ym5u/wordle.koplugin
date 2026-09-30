@@ -116,3 +116,73 @@ describe("WordleBoard", function()
         end)
     end)
 end)
+
+describe("English word lists", function()
+    local DIR2 = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
+    local answers = assert(loadfile(DIR2 .. "words_en.lua"))()
+    local guesses = assert(loadfile(DIR2 .. "guesses_en.lua"))()
+
+    local Board
+    setup(function() Board = require("board") end)
+
+    local function guess(board, word)
+        board.current = {}
+        for i = 1, #word do board:typeLetter(word:sub(i, i)) end
+        return board:submit()
+    end
+
+    it("accepts ordinary English words the old 716-word list rejected", function()
+        -- Every one of these came back "invalid" before the answer/guess split.
+        for _, word in ipairs({ "STARE", "TEARS", "IRATE", "NOTES", "QUIRK",
+                                "FJORD", "LYMPH", "ADIEU" }) do
+            local b = Board:new{ lang = "en" }
+            assert.are_not.equal("invalid", guess(b, word),
+                word .. " should be an acceptable guess")
+        end
+    end)
+
+    it("still rejects non-words", function()
+        for _, word in ipairs({ "ZZZZZ", "QQQQQ", "XKCDE" }) do
+            local b = Board:new{ lang = "en" }
+            assert.are.equal("invalid", guess(b, word))
+        end
+    end)
+
+    it("keeps words from the previously shipped list playable", function()
+        -- EMAIL in particular post-dates ENABLE, so it only survives because
+        -- the old list was folded into the new one rather than replaced.
+        for _, word in ipairs({ "ABOUT", "EMAIL", "PIZZA", "ZEBRA" }) do
+            assert.are_not.equal("invalid", guess(Board:new{ lang = "en" }, word))
+        end
+    end)
+
+    it("draws answers only from the answer list, never from the guess list", function()
+        local is_answer = {}
+        for _, w in ipairs(answers) do is_answer[w] = true end
+        for _ = 1, 200 do
+            local b = Board:new{ lang = "en" }
+            assert.is_true(is_answer[b.secret], b.secret .. " is not an answer word")
+        end
+    end)
+
+    it("keeps the two lists disjoint, and every entry a 5-letter word", function()
+        local seen = {}
+        for _, list in ipairs({ answers, guesses }) do
+            for _, w in ipairs(list) do
+                assert.are.equal(5, #w)
+                assert.is_nil(w:match("[^A-Z]"), w .. " is not plain uppercase")
+                assert.is_nil(seen[w], w .. " appears in both lists")
+                seen[w] = true
+            end
+        end
+        assert.is_true(#answers > 2000)
+        assert.is_true(#guesses > 5000)
+    end)
+
+    it("leaves French alone -- it ships answers only and has no guess file", function()
+        local b = Board:new{ lang = "fr" }
+        assert.are.equal(5, #b.secret)
+        assert.are.equal("invalid", guess(Board:new{ lang = "fr" }, "ZZZZZ"))
+    end)
+end)
+
