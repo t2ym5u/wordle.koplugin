@@ -20,8 +20,8 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 
 ## Features
 
-- **Two languages** — EN and FR
-- **Separate answer and guess lists (EN)** — 2,307 common words can be the answer, while 8,637 are accepted as guesses, so ordinary English words are never rejected as "not a word"
+- **Three languages** — EN, FR and IT
+- **Separate answer and guess lists (EN, IT)** — in English 2,307 common words can be the answer, while 8,637 are accepted as guesses, so ordinary English words are never rejected as "not a word"; in Italian 1,629 common words can be the answer and 9,246 are accepted, conjugated verb forms included
 - **On-screen keyboard** — shows letter status at a glance
 - **Hard mode** — revealed hints must be used in subsequent guesses
 - **Daily puzzle** — one puzzle per day derived from the date (reproducible seed)

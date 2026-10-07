@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+- Italian. Pick it from the language menu: 1,629 common words can be the
+  answer and 9,246 are accepted as guesses, conjugated verb forms included,
+  all accent-normalized (PERCHÉ -> PERCHE). Words come from
+  napolux/paroleitaliane (MIT); answers were chosen by frequency
+  (hermitdave/FrequencyWords). Italian UI and rules translations.
 ## [1.2.2] - 2026-10-07
 
 ### Fixed

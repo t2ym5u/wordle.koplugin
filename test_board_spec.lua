@@ -186,3 +186,59 @@ describe("English word lists", function()
     end)
 end)
 
+
+describe("Italian word lists", function()
+    local DIR2 = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
+    local answers = assert(loadfile(DIR2 .. "words_it.lua"))()
+    local guesses = assert(loadfile(DIR2 .. "guesses_it.lua"))()
+
+    local Board
+    setup(function() Board = require("board") end)
+
+    local function guess(board, word)
+        board.current = {}
+        for i = 1, #word do board:typeLetter(word:sub(i, i)) end
+        return board:submit()
+    end
+
+    it("accepts common Italian words and conjugated verb forms", function()
+        for _, word in ipairs({ "TEMPO", "NOTTE", "PASTA", "AMICO", "FANNO", "STAVO", "DORMI" }) do
+            local b = Board:new{ lang = "it" }
+            assert.are_not.equal("invalid", guess(b, word), word .. " was rejected")
+        end
+    end)
+
+    it("still rejects non-words", function()
+        assert.are.equal("invalid", guess(Board:new{ lang = "it" }, "ZZZZZ"))
+    end)
+
+    it("draws answers only from the answer list, never from the guess list", function()
+        local is_answer = {}
+        for _, w in ipairs(answers) do is_answer[w] = true end
+        for _ = 1, 200 do
+            local b = Board:new{ lang = "it" }
+            assert.is_true(is_answer[b.secret], b.secret .. " is not an answer word")
+        end
+    end)
+
+    it("keeps the two lists disjoint, and every entry a 5-letter word", function()
+        local seen = {}
+        for _, list in ipairs({ answers, guesses }) do
+            for _, w in ipairs(list) do
+                assert.are.equal(5, #w)
+                assert.is_nil(w:match("[^A-Z]"), w .. " is not plain uppercase")
+                assert.is_nil(seen[w], w .. " appears in both lists")
+                seen[w] = true
+            end
+        end
+        assert.is_true(#answers > 1500)
+        assert.is_true(#guesses > 5000)
+    end)
+
+    it("uses only letters native to Italian and vowel endings in answers", function()
+        for _, w in ipairs(answers) do
+            assert.is_nil(w:match("[JKWXY]"), w .. " has a non-Italian letter")
+            assert.is_truthy(w:match("[AEIOU]$"), w .. " ends in a consonant")
+        end
+    end)
+end)

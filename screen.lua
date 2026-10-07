@@ -193,6 +193,7 @@ function WordleScreen:openLangMenu()
     local items = {
         { id = "en", text = _("English") },
         { id = "fr", text = _("Français") },
+        { id = "it", text = _("Italiano") },
     }
     MenuHelper.openPickerMenu{
         title      = _("Language"),
@@ -235,7 +236,7 @@ end
 
 function WordleScreen:_langLabel()
     local lang = self.plugin:getSetting("lang", "en")
-    return lang == "fr" and "FR" or "EN"
+    return (lang == "fr" and "FR") or (lang == "it" and "IT") or "EN"
 end
 
 return WordleScreen
