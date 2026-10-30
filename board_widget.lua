@@ -31,6 +31,28 @@ local C_TEXT_DARK = Blitbuffer.COLOR_BLACK
 local C_TEXT_LITE = Blitbuffer.COLOR_WHITE
 local C_GRID      = Blitbuffer.COLOR_GRAY_B
 
+local Screen = Device.screen
+
+-- Largest face whose ink for `sample` fits max_w x max_h. Measured unbounded
+-- (a max_width limit cuts the text, so the width test could never fail), ink
+-- height is y_top + y_bottom, and Font:getFace scales its size by the DPI, so
+-- the pixel bound is converted back first.
+local function fitFace(name, sample, max_w, max_h)
+    local lo = 6
+    local hi = math.max(lo, math.floor(max_h * 1000 / Screen:scaleBySize(1000)) * 2)
+    local best = lo
+    while lo <= hi do
+        local mid = math.floor((lo + hi) / 2)
+        local m = RenderText:sizeUtf8Text(0, Screen:getWidth(), Font:getFace(name, mid), sample, true, false)
+        if m.x <= max_w and m.y_top + m.y_bottom <= max_h then
+            best, lo = mid, mid + 1
+        else
+            hi = mid - 1
+        end
+    end
+    return Font:getFace(name, best)
+end
+
 -- ---------------------------------------------------------------------------
 -- WordleBoardWidget
 -- ---------------------------------------------------------------------------
@@ -54,8 +76,7 @@ function WordleBoardWidget:init()
     self.dimen    = Geom:new{ w = self.w, h = self.h }
     self.paint_rect = nil
 
-    local fs = math.max(8, math.floor(cell * 0.55))
-    self.face = Font:getFace("cfont", fs)
+    self.face = fitFace("cfont", "W", math.floor(cell * 0.7), math.floor(cell * 0.5))
 end
 
 function WordleBoardWidget:refresh()
@@ -101,9 +122,11 @@ function WordleBoardWidget:paintTo(bb, x, y)
 
             if letter ~= "" then
                 local tc = (state == WordleBoard.STATE_CORRECT) and C_TEXT_LITE or C_TEXT_DARK
-                local m  = RenderText:sizeUtf8Text(0, cell, self.face, letter, true, false)
+                -- Centred on the cell: the baseline sits half the ink
+                -- height below the middle.
+                local m  = RenderText:sizeUtf8Text(0, Screen:getWidth(), self.face, letter, true, false)
                 local tx = cx + math.floor((cell - m.x) / 2)
-                local ty = cy + math.floor((cell + m.y_top - m.y_bottom) / 2)
+                local ty = cy + math.floor(cell / 2) + math.floor((m.y_top - m.y_bottom) / 2)
                 RenderText:renderUtf8Text(bb, tx, ty, self.face, letter, true, false, tc)
             end
         end

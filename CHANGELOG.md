@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.3.0] - 2026-10-30
+
+### Changed
+- Redesigned play screen: the grid fills the room the keyboard leaves, and
+  the keys are finger-sized.
+- The keyboard follows KOReader's language (AZERTY in French, QWERTZ in
+  German) instead of the word list's language.
+- Key shading is one step lighter than the tiles, so the black labels on
+  correct and present letters stay readable.
+- The status line is shorter while playing ("Try 3/6"); the wins and losses
+  show once the round is over ("The word was CRANE. · Wins: 4 · Losses: 1").
+  It wraps in landscape instead of being cut off.
+- The title-bar menu shows "Language: …" (was the bare "EN" / "FR").
+- Once the round is won or lost, "New game" appears under the keyboard, so
+  the next round no longer needs the menu.
+
+### Fixed
+- Letters were sized from the tile and then scaled again for the screen's
+  DPI, so they could overflow their tiles; they are now fitted and centred.
+
 ## [1.2.2] - 2026-10-07
 
 ### Fixed

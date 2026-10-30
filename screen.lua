@@ -71,20 +71,16 @@ function WordleScreen:init()
     ScreenBase.init(self)
 end
 
+function WordleScreen:isRoundOver()
+    return self.board.won or self.board.lost
+end
+
 function WordleScreen:serializeState()
     return self.board:serialize()
 end
 
 function WordleScreen:buildLayout()
-    local sw           = DeviceScreen:getWidth()
-    local sh = DeviceScreen:getHeight()
     local is_landscape = self:isLandscape()
-
-    local btn_width = is_landscape
-        and math.max(math.floor(sw * 0.38), 120)
-        or  math.floor(sw * 0.9)
-
-    self.status_text:setMaxWidth(btn_width)
 
     -- Top bar
     local title_bar = self:buildTitleBar(_("Wordle"), function()
@@ -95,64 +91,68 @@ function WordleScreen:buildLayout()
         }
     end)
 
-    -- Board widget
-    local max_cell = is_landscape and math.floor(sh * 0.7) or math.floor(sw * 0.9)
-    local max_w    = math.floor(max_cell * (self.board.word_len / self.board.max_tries))
-    local max_h    = max_cell
-    if is_landscape then
-        max_w = math.floor(sw * 0.42)
-        max_h = sh - 40
-    end
-
-    self.board_widget = WordleBoardWidget:new{
-        board      = self.board,
-        max_width  = math.max(max_w, 60),
-        max_height = math.max(max_h, 60),
-    }
-
-    local board_frame = FrameContainer:new{
-        padding = Size.padding.default,
-        margin  = Size.margin.default,
-        self.board_widget,
-    }
-
+    local controls_w = self:getControlsWidth()
+    self.status_text:setMaxWidth(controls_w)
     self.keyboard_widget = KeyboardWidget.build{
-        width     = btn_width,
-        layout    = (self.board.lang == "fr") and "azerty" or "qwerty",
-        backspace = true,
-        enter     = true,
-        onKey     = function(k) self:onVirtualKey(k) end,
-        keyColor  = function(k)
+        width      = controls_w,
+        key_height = DeviceScreen:scaleBySize(52),
+        backspace  = true,
+        enter      = true,
+        onKey      = function(k) self:onVirtualKey(k) end,
+        -- Same dark-to-light order as the tiles, one step lighter: a key's
+        -- label is always black, and black on the tiles' GRAY_4 is unreadable.
+        keyColor   = function(k)
             local ks = self.board.key_state[k]
-            if ks == WordleBoard.STATE_CORRECT then return Blitbuffer.COLOR_GRAY_4 end
-            if ks == WordleBoard.STATE_PRESENT then return Blitbuffer.COLOR_GRAY_9 end
-            if ks == WordleBoard.STATE_ABSENT  then return Blitbuffer.COLOR_GRAY_D end
+            if ks == WordleBoard.STATE_CORRECT then return Blitbuffer.COLOR_GRAY_7 end
+            if ks == WordleBoard.STATE_PRESENT then return Blitbuffer.COLOR_GRAY_B end
+            if ks == WordleBoard.STATE_ABSENT  then return Blitbuffer.COLOR_GRAY_E end
             return nil
         end,
     }
+    local controls = VerticalGroup:new{
+        align = "center",
+        self.status_text,
+        VerticalSpan:new{ width = Size.span.vertical_large },
+        self.keyboard_widget,
+    }
+
+    -- No bottom actions while playing (the keyboard is the control); once
+    -- the round is over, "New game" appears under it.
+    self.action_bar = nil
+    if self:isRoundOver() then
+        table.insert(controls, VerticalSpan:new{ width = Size.span.vertical_default })
+        table.insert(controls, self:buildActionBar({}))
+    end
+
+    -- Board widget: the grid draws its own thick border, so the frame only
+    -- pads it.
+    local frame_pad   = Size.padding.default
+    local frame_extra = 2 * frame_pad
+    local budget_w, budget_h = self:getBoardBudget(title_bar, controls)
+    self.board_widget = WordleBoardWidget:new{
+        board      = self.board,
+        max_width  = math.max(budget_w - frame_extra, 60),
+        max_height = math.max(budget_h - frame_extra, 60),
+    }
+
+    local board_frame = FrameContainer:new{
+        padding    = frame_pad,
+        margin     = 0,
+        bordersize = 0,
+        self.board_widget,
+    }
 
     if is_landscape then
-        local right = VerticalGroup:new{
-            align = "center",
-            self.status_text,
-            VerticalSpan:new{ width = Size.span.vertical_large },
-            self.keyboard_widget,
-        }
         local content = HorizontalGroup:new{
-            align  = "center",
+            align = "center",
             board_frame,
-            HorizontalSpan:new{ width = Size.span.horizontal_default },
-            right,
+            HorizontalSpan:new{ width = self:getGutter() },
+            controls,
         }
         self:buildLandscapeLayout(title_bar, content)
     else
-        local footer = VerticalGroup:new{
-            align = "center",
-            self.keyboard_widget,
-            VerticalSpan:new{ width = Size.span.vertical_large },
-            self.status_text,
-        }
-        self:buildPortraitLayout(title_bar, board_frame, footer)
+        self:buildPortraitLayout(title_bar, board_frame,
+            VerticalGroup:new{ align = "center", controls, VerticalSpan:new{ width = self:getGutter() } })
     end
     self:updateStatus()
 end
@@ -214,20 +214,20 @@ function WordleScreen:updateStatus(msg)
     local status
     if msg then
         status = msg
-    elseif self.board.won then
-        local attempt = #self.board.guesses
-        status = T(_("Solved in %1! Streak: %2"), attempt, self.board.streak)
-    elseif self.board.lost then
-        status = T(_("Lost! Word: %1  W:%2 L:%3"),
-            self.board.secret, self.board.wins, self.board.losses)
     else
-        local typed = table.concat(self.board.current)
-        if typed ~= "" then
-            status = T(_("Try %1/%2: %3"), self.board.row, self.board.max_tries, typed)
+        -- The running score only shows between games: mid-game the line
+        -- has to fit the narrow landscape side panel.
+        local score = self:joinStatus(
+            T(_("Wins: %1"),   self.board.wins),
+            T(_("Losses: %1"), self.board.losses))
+        if self.board.won then
+            status = self:joinStatus(
+                T(_("Solved in %1!"), #self.board.guesses),
+                T(_("Streak: %1"), self.board.streak))
+        elseif self.board.lost then
+            status = self:joinStatus(T(_("The word was %1."), self.board.secret), score)
         else
-            status = T(_("Try %1/%2  W:%3 L:%4"),
-                self.board.row, self.board.max_tries,
-                self.board.wins, self.board.losses)
+            status = T(_("Try %1/%2"), self.board.row, self.board.max_tries)
         end
     end
     ScreenBase.updateStatus(self, status)
@@ -235,7 +235,7 @@ end
 
 function WordleScreen:_langLabel()
     local lang = self.plugin:getSetting("lang", "en")
-    return lang == "fr" and "FR" or "EN"
+    return T(_("Language: %1"), lang == "fr" and "FR" or "EN")
 end
 
 return WordleScreen
