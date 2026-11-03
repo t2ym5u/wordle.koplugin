@@ -3,7 +3,7 @@
 -- vulgar, sexual, scatological, slur or drug-related words. Such a word stays
 -- a valid guess: only the answer pool leaves it out.
 local DIR = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
-package.path = DIR .. "?.lua;" .. package.path
+package.path = DIR .. "?.lua;" .. DIR .. "common/?.lua;" .. package.path
 
 local Blocklist = dofile(DIR .. "blocklist.lua")
 

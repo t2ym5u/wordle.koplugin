@@ -2,6 +2,21 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.5.0] - 2026-11-03
+
+### Changed
+- No more repeated words: the game remembers the words already played and
+  draws a new one each time; a word only comes back once the whole list has
+  been played (about 3,000 games). Solo games and multiplayer matches share
+  this memory, and a match never shows the same word twice.
+- More English words: 2,951 possible answers instead of 2,307, still common
+  words (FJORD, GECKO, KAZOO, LATTE, SUSHI, TAROT…), plus a few newer ones
+  now accepted as guesses too (EMOJI, INBOX, RAMEN, MANGA…).
+
+### Fixed
+- README listed features the game never had (hard mode, daily puzzle,
+  guess distribution, hatched tiles).
+
 ## [1.4.0] - 2026-11-02
 
 ### Added

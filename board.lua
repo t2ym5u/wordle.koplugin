@@ -19,6 +19,14 @@ local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 
 local Blocklist = assert(loadfile(_dir .. "blocklist.lua"))()
 
+-- Answers already played, remembered in the plugin settings (game-common
+-- seen_history.lua): a new word is one not seen yet, and a word only comes
+-- back once the whole list for that language and length has been played.
+-- One key per language and word length; FR has more words than SEEN_MAX, so
+-- the oldest are forgotten first -- a repeat still takes 3,000 games.
+local SeenHistory = require("seen_history")
+local SEEN_MAX = 3000
+
 local _lists = {}
 
 local function loadLang(lang)
@@ -81,9 +89,16 @@ local STATE_ABSENT  = 4   -- letter not in word
 local WordleBoard = {}
 WordleBoard.__index = WordleBoard
 
+-- opts.plugin : settings holder for the answer history (none: plain random,
+--               as in the specs); opts.data : a saved game to restore instead
+--               of drawing a new word (obj.loaded tells whether it worked);
+--               opts.exclude : set of answers this board must not draw (a
+--               party match's earlier words).
 function WordleBoard:new(opts)
     opts = opts or {}
     local obj = setmetatable({
+        plugin    = opts.plugin,
+        exclude   = opts.exclude,
         lang      = opts.lang     or "en",
         word_len  = opts.word_len or WORD_LEN,
         max_tries = MAX_TRIES,
@@ -102,8 +117,11 @@ function WordleBoard:new(opts)
         losses    = 0,
         streak    = 0,
     }, self)
-    obj:_newWord()
-    obj.current = obj:_freshRow()
+    obj.loaded = opts.data ~= nil and obj:load(opts.data) or false
+    if not obj.loaded then
+        obj:_newWord()
+        obj.current = obj:_freshRow()
+    end
     return obj
 end
 
@@ -128,7 +146,19 @@ function WordleBoard:_newWord()
     -- word_len today, but a saved game from a future build might.
     if #list == 0 then list = loadLang("en").answers end
     if #list == 0 then return end
-    self.secret = list[math.random(#list)]
+    if self.exclude then
+        local left = {}
+        for _i, w in ipairs(list) do
+            if not self.exclude[w] then left[#left + 1] = w end
+        end
+        if #left > 0 then list = left end
+    end
+    if self.plugin then
+        local key = "answers_" .. self.lang .. "_" .. self.word_len
+        self.secret = SeenHistory.open(self.plugin, key, { max = SEEN_MAX }):pick(list)
+    else
+        self.secret = list[math.random(#list)]
+    end
 end
 
 function WordleBoard:newGame()

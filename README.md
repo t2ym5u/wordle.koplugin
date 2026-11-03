@@ -21,12 +21,11 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 ## Features
 
 - **Two languages** — EN and FR
-- **Separate answer and guess lists (EN)** — 2,307 common words can be the answer, while 8,637 are accepted as guesses, so ordinary English words are never rejected as "not a word"
+- **Separate answer and guess lists (EN)** — 2,951 common words can be the answer, while 8,647 are accepted as guesses, so ordinary English words are never rejected as "not a word"; French has 5,837 answers
+- **No repeats** — the words already played are remembered: a word only comes back once the whole list has been played (solo and multiplayer share this memory; a match never repeats a word)
 - **On-screen keyboard** — shows letter status at a glance
-- **Hard mode** — revealed hints must be used in subsequent guesses
-- **Daily puzzle** — one puzzle per day derived from the date (reproducible seed)
-- **Free play** — unlimited random puzzles
-- **Statistics** — win streak, guess distribution histogram
+- **Unlimited games** — a new random word each game
+- **Score** — wins and current win streak
 - **Auto-save** — resume an in-progress game after closing KOReader
 
 ## Multiplayer
@@ -60,8 +59,8 @@ shown in big type with the scores under it.
 ## Why e-ink friendly?
 
 Each guess is a discrete, low-frequency interaction. The letter-status feedback
-uses distinct fill patterns (solid / hatched / empty) instead of colours alone,
-so the puzzle remains readable on greyscale e-ink screens.
+uses well-separated grey levels (dark / mid / light), with white letters on
+the dark tiles, so the puzzle remains readable on greyscale e-ink screens.
 
 ## License
 
