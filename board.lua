@@ -17,6 +17,8 @@ local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 -- Loaded lazily: the English guess list alone is several thousand words, and
 -- a player who never opens Wordle should not pay for it.
 
+local Blocklist = assert(loadfile(_dir .. "blocklist.lua"))()
+
 local _lists = {}
 
 local function loadLang(lang)
@@ -27,6 +29,9 @@ local function loadLang(lang)
     local answers_fn = loadfile(_dir .. "words_" .. lang .. ".lua")
     entry.answers = (answers_fn and answers_fn()) or {}
     for _, w in ipairs(entry.answers) do entry.valid[w] = true end
+    -- A blocklisted word (blocklist.lua) stays a valid guess but is never
+    -- the answer: French has no separate guess list to move it to.
+    entry.answers = Blocklist.filter(entry.answers, lang)
 
     -- Every answer is also a valid guess, so guesses_<lang>.lua only needs to
     -- carry the extras -- no duplication between the two files.
@@ -82,6 +87,9 @@ function WordleBoard:new(opts)
         lang      = opts.lang     or "en",
         word_len  = opts.word_len or WORD_LEN,
         max_tries = MAX_TRIES,
+        -- Party mode's TV-show variant: the secret's first letter is given,
+        -- locked in the first tile of every row.
+        first_letter = opts.first_letter == true,
         secret    = "",
         guesses   = {},   -- array of { letters={}, states={} }
         current   = {},   -- current row letters (array of chars)
@@ -95,7 +103,21 @@ function WordleBoard:new(opts)
         streak    = 0,
     }, self)
     obj:_newWord()
+    obj.current = obj:_freshRow()
     return obj
+end
+
+-- Letters a row starts with: nothing, or the given first letter.
+function WordleBoard:_freshRow()
+    if self.first_letter and self.secret ~= "" then
+        return { self.secret:sub(1, 1) }
+    end
+    return {}
+end
+
+-- Empties the row being typed (back to the given first letter, if any).
+function WordleBoard:clearRow()
+    self.current = self:_freshRow()
 end
 
 function WordleBoard:_newWord()
@@ -112,7 +134,7 @@ end
 function WordleBoard:newGame()
     self:_newWord()
     self.guesses  = {}
-    self.current  = {}
+    self.current  = self:_freshRow()
     self.row      = 1
     self.won      = false
     self.lost     = false
@@ -129,7 +151,7 @@ end
 -- Delete last letter
 function WordleBoard:deleteLetter()
     if self.won or self.lost then return end
-    if #self.current == 0 then return end
+    if #self.current <= (self.first_letter and 1 or 0) then return end
     table.remove(self.current)
 end
 
@@ -158,7 +180,7 @@ function WordleBoard:submit()
         end
     end
 
-    self.current = {}
+    self.current = self:_freshRow()
     self.row     = self.row + 1
 
     if guess_str == self.secret then
@@ -215,6 +237,7 @@ function WordleBoard:serialize()
     return {
         lang      = self.lang,
         word_len  = self.word_len,
+        first_letter = self.first_letter or nil,
         secret    = self.secret,
         guesses   = self.guesses,
         current   = self.current,
@@ -233,6 +256,7 @@ function WordleBoard:load(data)
     self.lang      = data.lang      or "en"
     self.word_len  = data.word_len  or WORD_LEN
     self.secret    = data.secret    or ""
+    self.first_letter = data.first_letter == true
     self.guesses   = data.guesses   or {}
     self.current   = data.current   or {}
     self.row       = data.row       or 1

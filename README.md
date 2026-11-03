@@ -29,6 +29,24 @@ Guess the hidden 5-letter word in 6 attempts. After each guess, each letter is m
 - **Statistics** — win streak, guess distribution histogram
 - **Auto-save** — resume an in-progress game after closing KOReader
 
+## Multiplayer
+
+Pick **Wordle · multiplayer** (Tools → Games → Party & quiz), or *Mode:
+Multiplayer* in the game menu, and lay the reader in the middle of the table.
+2 to 4 teams share one grid and take turns, one row each; the team to play is
+shown in big type with the scores under it.
+
+- **First letter shown** (on by default): every row starts with the word's
+  first letter, locked in place.
+- A word that is not in the word list is refused and **the turn passes** to the
+  next team (no row is used up); a word too short is just refused.
+- The team that finds the word scores **the rows left**: 6 points on the first
+  row, 5 on the second … 1 on the sixth.
+- If the grid fills up, the word is revealed and nobody scores.
+- A match is 3, 5, 7 or 10 words (*Rounds*); each word another team starts.
+  Team names are remembered; the match is saved when you leave and does not
+  touch your solo game.
+
 ## Controls
 
 | Action | How |

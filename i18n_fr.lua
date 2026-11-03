@@ -9,4 +9,15 @@ return {
     ["Losses: %1"]                        = { fr = "Défaites : %1", es = "Derrotas: %1", de = "Niederlagen: %1" },
     ["Guess the hidden word in 6 tries. Letter hints guide each attempt."] = { fr = "Devinez le mot caché en 6 essais. Les indices de lettres guident chaque tentative.", es = "Adivina la palabra oculta en 6 intentos. Las pistas de letras guían cada intento.", de = "Errate das versteckte Wort in 6 Versuchen. Buchstabenhinweise leiten jeden Versuch." },
     ["Wordle"]                                 = { fr = "Wordle", es = "Wordle", de = "Wordle" },
+    -- Multiplayer (teams)
+    ["Next round"]                        = { fr = "Manche suivante", es = "Siguiente ronda", de = "Nächste Runde" },
+    ["Teams: %1"]                         = { fr = "Équipes : %1", es = "Equipos: %1", de = "Teams: %1" },
+    ["Rounds"]                            = { fr = "Manches", es = "Rondas", de = "Runden" },
+    ["Rounds: %1"]                        = { fr = "Manches : %1", es = "Rondas: %1", de = "Runden: %1" },
+    ["Round %1/%2"]                       = { fr = "Manche %1/%2", es = "Ronda %1/%2", de = "Runde %1/%2" },
+    ["Mode"]                              = { fr = "Mode", es = "Modo", de = "Modus" },
+    ["First letter shown: %1"]            = { fr = "Première lettre donnée : %1", es = "Primera letra a la vista: %1", de = "Erster Buchstabe vorgegeben: %1" },
+    ["%1 scores %2!"]                     = { fr = "%1 marque %2 !", es = "¡%1 suma %2!", de = "%1 holt %2!" },
+    ["Nobody scores"]                     = { fr = "Personne ne marque", es = "Nadie puntúa", de = "Niemand punktet" },
+    ["Not in word list! Turn passes."]    = { fr = "Absent de la liste ! La main passe.", es = "¡No está en la lista! Pasa el turno.", de = "Nicht in der Wortliste! Der Zug geht weiter." },
 }
