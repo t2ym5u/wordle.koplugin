@@ -2,6 +2,24 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-11-02
+
+### Added
+- Multiplayer mode for 2 to 4 teams ("Wordle · multiplayer" under Tools →
+  Games → Party & quiz, or Mode: Multiplayer in the game menu): one shared
+  grid, teams take turns, the team to play is shown in big type. Optional
+  "First letter shown" (on by default). The team that finds the word scores
+  the rows left (6 on the first row … 1 on the last); a full grid reveals the
+  word and nobody scores; a word not in the list is refused and the turn
+  passes. Matches of 3/5/7/10 words, team names remembered, final scoreboard,
+  match saved and restored apart from the solo game.
+
+### Changed
+- Family-friendly words: the answer is never a vulgar, sexual,
+  scatological, slur or drug-related word any more (`blocklist.lua`, applied
+  to the answer pool) -- 6 English and 47 French words. They are still
+  accepted as guesses.
+
 ## [1.3.1] - 2026-11-02
 
 ### Changed

@@ -19,6 +19,8 @@ local Wordle = PluginBase:extend{
     name      = "wordle",
     menu_text = _("Wordle"),
     menu_hint = "tools",
+    -- "Wordle · multiplayer": teams take turns on one shared grid.
+    party_mode = true,
 }
 
 function Wordle:createScreen()
