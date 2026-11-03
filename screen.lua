@@ -132,16 +132,13 @@ function WordleScreen:init()
     -- progress (and its wins/streak) is left as it was.
     self.party = self.plugin.launch_mode == "party"
     if self.party then
-        self.match = WordleParty.load(self.plugin:loadState("party_state"))
+        self.match = WordleParty.load(self.plugin:loadState("party_state"), self.plugin)
                      or self:_newMatch()
         self.board = self.match.board
     else
-        local state = self.plugin:loadState()
-        local lang  = self.plugin:getSetting("lang", "en")
-        self.board  = WordleBoard:new{ lang = lang }
-        if not self.board:load(state) then
-            -- fresh game
-        end
+        -- A saved game is restored; otherwise a fresh word is drawn.
+        self.board  = WordleBoard:new{ lang = self.plugin:getSetting("lang", "en"),
+                                       plugin = self.plugin, data = self.plugin:loadState() }
     end
     ScreenBase.init(self)
 end
@@ -192,6 +189,7 @@ function WordleScreen:_newMatch()
         rounds       = self.plugin:getSetting("party_rounds", WordleParty.DEFAULT_ROUNDS),
         lang         = self.plugin:getSetting("lang", "en"),
         first_letter = self.plugin:getSetting("party_first_letter", true),
+        plugin       = self.plugin,
     }
 end
 
@@ -265,9 +263,9 @@ function WordleScreen:setMode(mode)
         self.board = self.match.board
     else
         self.match = nil
-        self.board = WordleBoard:new{ lang = self.plugin:getSetting("lang", "en") }
-        self.board:load(self.plugin:loadState())
-        self.board:newGame()
+        self.board = WordleBoard:new{ lang = self.plugin:getSetting("lang", "en"),
+                                      plugin = self.plugin, data = self.plugin:loadState() }
+        if self.board.loaded then self.board:newGame() end
     end
     self:_save()
     self:_redraw()

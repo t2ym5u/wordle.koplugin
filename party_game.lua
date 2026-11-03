@@ -8,6 +8,9 @@
 -- the turn passes (the TV rule), without using up a row; a guess too short is
 -- just refused. With first_letter on, every row starts with the word's first
 -- letter, locked. A match is `rounds` words; each round another team starts.
+-- No word comes back within a match, and with opts.plugin the words are
+-- drawn through the same answer history as the solo game (board.lua), so a
+-- word played solo or in an earlier match waits until the list is used up.
 
 local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 local function lrequire(name)
@@ -34,9 +37,19 @@ function WordleParty.pointsForRow(r)
     return math.max(1, WordleBoard.MAX_TRIES - r + 1)
 end
 
--- opts: names (team names), rounds, lang, first_letter
+-- The words this match has used so far, as a set.
+local function usedSet(list)
+    local set = {}
+    for _i, w in ipairs(list) do set[w] = true end
+    return set
+end
+
+-- opts: names (team names), rounds, lang, first_letter, plugin (settings
+-- holder for the answer history; none in the specs)
 function WordleParty.new(opts)
     local self = setmetatable({
+        plugin       = opts.plugin,
+        used         = {},
         scores       = Party.newScores(opts.names),
         rounds       = opts.rounds or WordleParty.DEFAULT_ROUNDS,
         first_letter = opts.first_letter ~= false,
@@ -63,7 +76,9 @@ end
 -- The next word. Round k is started by team k (cycling).
 function WordleParty:startRound()
     Party.nextRound(self.scores)
-    self.board = WordleBoard:new{ lang = self.lang, first_letter = self.first_letter }
+    self.board = WordleBoard:new{ lang = self.lang, first_letter = self.first_letter,
+                                  plugin = self.plugin, exclude = usedSet(self.used) }
+    self.used[#self.used + 1] = self.board.secret
     self.turn  = (self.scores.round - 1) % self:teamCount() + 1
     self.last  = nil
 end
@@ -117,16 +132,25 @@ function WordleParty:serialize()
         lang         = self.lang,
         turn         = self.turn,
         last         = self.last,
+        used         = self.used,
         board        = self.board:serialize(),
     }
 end
 
 -- A saved match, or nil when the table is unusable.
-function WordleParty.load(data)
+function WordleParty.load(data, plugin)
     if type(data) ~= "table" then return nil end
     local scores = Party.restoreScores(data.scores)
     if not scores or #scores.names < WordleParty.MIN_TEAMS then return nil end
+    local used = {}
+    if type(data.used) == "table" then
+        for _i, w in ipairs(data.used) do
+            if type(w) == "string" then used[#used + 1] = w end
+        end
+    end
     local self = setmetatable({
+        plugin       = plugin,
+        used         = used,
         scores       = scores,
         rounds       = tonumber(data.rounds) or WordleParty.DEFAULT_ROUNDS,
         first_letter = data.first_letter ~= false,
@@ -135,8 +159,10 @@ function WordleParty.load(data)
         last         = type(data.last) == "table" and data.last or nil,
     }, WordleParty)
     if self.turn < 1 or self.turn > #scores.names then self.turn = 1 end
-    self.board = WordleBoard:new{ lang = self.lang, first_letter = self.first_letter }
-    if not self.board:load(data.board) then return nil end
+    self.board = WordleBoard:new{ lang = self.lang, first_letter = self.first_letter,
+                                  data = data.board }
+    if not self.board.loaded then return nil end
+    self.board.plugin = plugin
     return self
 end
 

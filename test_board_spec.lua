@@ -1,5 +1,5 @@
 local DIR = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
-package.path = DIR .. "?.lua;" .. package.path
+package.path = DIR .. "?.lua;" .. DIR .. "common/?.lua;" .. package.path
 
 describe("WordleBoard", function()
     local Board
