@@ -186,3 +186,23 @@ describe("English word lists", function()
     end)
 end)
 
+
+-- The word lists load with the first game of a language, only that
+-- language's, and release() (the screen closing) drops them.
+describe("WordleBoard word loading", function()
+    it("loads nothing on require, one language on demand, none after release", function()
+        local Board = dofile(DIR .. "board.lua")
+        assert.are.same({}, Board.loadedLanguages())
+        math.randomseed(7)
+        local secret = Board:new{ lang = "fr" }.secret
+        assert.are.same({ "fr" }, Board.loadedLanguages())
+        Board:new{ lang = "en" }
+        assert.are.same({ "en" }, Board.loadedLanguages())
+        Board.release()
+        assert.are.same({}, Board.loadedLanguages())
+        -- Read again, the same draw for the same seed.
+        math.randomseed(7)
+        assert.are.equal(secret, Board:new{ lang = "fr" }.secret)
+        Board.release()
+    end)
+end)

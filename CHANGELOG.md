@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.0] - 2026-11-04
+
+### Changed
+- Bigger keys in landscape: the keyboard panel beside the grid is wider
+  (45 % of the screen instead of 36 %), so each key is about a quarter wider.
+  The grid shrinks only slightly. Portrait is unchanged.
+- Needs game-common 1.13.0.
+- Uses less memory: the game loads when you open it, not when KOReader
+  starts, so it no longer takes memory or startup time while unplayed.
+- Uses less memory: the word lists load when the game opens, only for the
+  language played, and are freed when it closes.
+
 ## [1.5.0] - 2026-11-03
 
 ### Changed
@@ -68,7 +80,6 @@ All notable changes to this project will be documented in this file.
   KOReader's `gettext`, which knows nothing of this plugin's strings, so the
   menu label stayed English while the game's own screen, which goes through
   `i18n`, was translated. `_` now comes from `i18n` here too.
-
 
 ## [1.2.1] - 2026-10-01
 
