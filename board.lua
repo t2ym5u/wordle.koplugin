@@ -15,7 +15,9 @@ local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 -- only for now and behaves exactly as before.
 --
 -- Loaded lazily: the English guess list alone is several thousand words, and
--- a player who never opens Wordle should not pay for it.
+-- a player who never opens Wordle should not pay for it. Only the language
+-- in play is kept (switching drops the other one), and WordleBoard.release()
+-- (the screen closing) drops it too: it is quick to read again.
 
 local Blocklist = assert(loadfile(_dir .. "blocklist.lua"))()
 
@@ -48,7 +50,7 @@ local function loadLang(lang)
         for _, w in ipairs(guesses_fn() or {}) do entry.valid[w] = true end
     end
 
-    _lists[lang] = entry
+    _lists = { [lang] = entry }
     return entry
 end
 
@@ -307,5 +309,20 @@ WordleBoard.STATE_ABSENT  = STATE_ABSENT
 WordleBoard.LANG_ORDER    = LANG_ORDER
 WordleBoard.WORD_LEN      = WORD_LEN
 WordleBoard.MAX_TRIES     = MAX_TRIES
+
+-- Drops the loaded word lists (called when the game screen closes); the next
+-- game reads its language's lists again.
+function WordleBoard.release()
+    _lists = {}
+    Blocklist.release()
+end
+
+-- The languages whose word lists are loaded now (for the specs).
+function WordleBoard.loadedLanguages()
+    local out = {}
+    for lang in pairs(_lists) do out[#out + 1] = lang end
+    table.sort(out)
+    return out
+end
 
 return WordleBoard

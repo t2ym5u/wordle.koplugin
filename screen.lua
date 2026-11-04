@@ -125,7 +125,11 @@ local RULES = {
     party = { PARTY_RULES_EN, PARTY_RULES_FR },
 }
 
-local WordleScreen = ScreenBase:extend{}
+-- A wider landscape side panel than the fleet default: the keyboard is the
+-- whole control, and its ten keys a row need the width (common/screen_base).
+local WordleScreen = ScreenBase:extend{
+    landscape_controls_ratio = 0.45,
+}
 
 function WordleScreen:init()
     -- Party matches are saved under their own key: the solo game in
@@ -526,6 +530,12 @@ end
 function WordleScreen:_langLabel()
     local lang = self.plugin:getSetting("lang", "en")
     return T(_("Language: %1"), lang == "fr" and "FR" or "EN")
+end
+
+-- The word lists are only needed while a game is open: drop them when the
+-- screen closes (the next game reads its language's lists again).
+function WordleScreen:onCloseWidget()
+    WordleBoard.release()
 end
 
 return WordleScreen

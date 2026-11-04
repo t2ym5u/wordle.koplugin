@@ -125,4 +125,9 @@ function M.filter(list, lang)
     return out
 end
 
+-- Drops the built sets (the game screen closing); rebuilt on next use.
+function M.release()
+    sets = {}
+end
+
 return M
