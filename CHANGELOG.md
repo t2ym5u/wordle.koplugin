@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.2] - 2026-11-05
+
+### Fixed
+- "Lynch" and its forms (LYNCHED, LYNCHING, LYNCHERS...; LYNCHAGE,
+  LYNCHER... in French) are added to the family-friendly blocklist, so the
+  game never draws or reveals them. They are still accepted when typed.
+
 ## [1.6.1] - 2026-11-04
 
 ### Fixed
