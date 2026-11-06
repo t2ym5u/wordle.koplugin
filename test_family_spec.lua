@@ -49,3 +49,17 @@ describe("family-friendly answers", function()
         assert.are_not.equal("invalid", b:submit())
     end)
 end)
+
+-- "lynch" and its forms were missing from the shared blocklist: a game could
+-- draw or reveal LYNCH (EN) or LYNCHAGE (FR). LYNCHPIN is another word.
+describe("blocklist: lynch", function()
+    it("blocks every English and French form, in any case", function()
+        for _, w in ipairs({ "LYNCH", "lynched", "Lynches", "LYNCHING", "LYNCHER", "lynchers" }) do
+            assert.is_true(Blocklist.isBlocked(w, "en"), w)
+        end
+        for _, w in ipairs({ "lyncher", "LYNCHAGE", "lynchee", "lyncheurs" }) do
+            assert.is_true(Blocklist.isBlocked(w, "fr"), w)
+        end
+        assert.is_false(Blocklist.isBlocked("LYNCHPIN", "en"))
+    end)
+end)
