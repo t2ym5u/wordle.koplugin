@@ -141,7 +141,7 @@ function WordleScreen:init()
         self.board = self.match.board
     else
         -- A saved game is restored; otherwise a fresh word is drawn.
-        self.board  = WordleBoard:new{ lang = self.plugin:getSetting("lang", "en"),
+        self.board  = WordleBoard:new{ lang = self.plugin:getLang({ "fr", "en" }),
                                        plugin = self.plugin, data = self.plugin:loadState() }
     end
     ScreenBase.init(self)
@@ -191,7 +191,7 @@ function WordleScreen:_newMatch()
     return WordleParty.new{
         names        = Party.loadPlayers(self.plugin, self:_teamCount(), TEAMS),
         rounds       = self.plugin:getSetting("party_rounds", WordleParty.DEFAULT_ROUNDS),
-        lang         = self.plugin:getSetting("lang", "en"),
+        lang         = self.plugin:getLang({ "fr", "en" }),
         first_letter = self.plugin:getSetting("party_first_letter", true),
         plugin       = self.plugin,
     }
@@ -267,7 +267,7 @@ function WordleScreen:setMode(mode)
         self.board = self.match.board
     else
         self.match = nil
-        self.board = WordleBoard:new{ lang = self.plugin:getSetting("lang", "en"),
+        self.board = WordleBoard:new{ lang = self.plugin:getLang({ "fr", "en" }),
                                       plugin = self.plugin, data = self.plugin:loadState() }
         if self.board.loaded then self.board:newGame() end
     end
@@ -482,11 +482,11 @@ function WordleScreen:openLangMenu()
     MenuHelper.openPickerMenu{
         title      = _("Language"),
         items      = items,
-        current_id = self.plugin:getSetting("lang", "en"),
+        current_id = self.plugin:getLang({ "fr", "en" }),
         parent     = self,
         on_select  = function(lang)
             self.board.lang = lang
-            self.plugin:saveSetting("lang", lang)
+            self.plugin:setLang(lang)
             if self.lang_btn then
                 self.lang_btn:setText(self:_langLabel(), self.lang_btn.width)
             end
@@ -528,7 +528,7 @@ function WordleScreen:updateStatus(msg)
 end
 
 function WordleScreen:_langLabel()
-    local lang = self.plugin:getSetting("lang", "en")
+    local lang = self.plugin:getLang({ "fr", "en" })
     return T(_("Language: %1"), lang == "fr" and "FR" or "EN")
 end
 

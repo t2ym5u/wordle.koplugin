@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.3] - 2026-11-09
+
+### Fixed
+- The game now starts in KOReader's language (French when KOReader is in
+  French) instead of always English; a language picked in the game holds
+  until KOReader's language changes.
+
 ## [1.6.2] - 2026-11-05
 
 ### Fixed
