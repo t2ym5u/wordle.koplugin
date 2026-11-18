@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.6.5] - 2026-11-18
+
+### Changed
+- Picks up game-common 1.17.0 (a board redraw fix used by chess, binairo and
+  tatami; no change in this game).
+
 ## [1.6.4] - 2026-11-12
 
 ### Changed
