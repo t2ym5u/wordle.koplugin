@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.7.0] - 2026-11-24
+
+### Changed
+- French accepts 1,079 more guesses, taken from the Grammalecte lexicon
+  (Dicollecte, MPL 2.0) through Boggle's word list (`guesses_fr.lua`). They
+  are never the word to find: the answers are unchanged.
+
 ## [1.6.8] - 2026-11-24
 
 ### Changed

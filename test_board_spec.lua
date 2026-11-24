@@ -47,6 +47,18 @@ describe("WordleBoard", function()
             assert.are.equal("invalid", b:submit())
         end)
 
+        -- 2026-11-24: guesses_fr.lua (tools/build_guesses_fr.py) widens the
+        -- French guesses with the Grammalecte lexicon's forms; ABYME is one,
+        -- and it must stay a guess only, never an answer.
+        it("accepts a French guess from guesses_fr.lua that is never an answer", function()
+            local answers = dofile(DIR .. "words_fr.lua")
+            for _, w in ipairs(answers) do assert.are_not.equal("ABYME", w) end
+            local b = Board:new{ lang = "fr" }
+            if b.secret == "ABYME" then return end
+            for ch in ("ABYME"):gmatch(".") do b:typeLetter(ch) end
+            assert.are_not.equal("invalid", b:submit())
+        end)
+
         it("wins by guessing the secret and marks every letter correct", function()
             local b = Board:new()
             for i = 1, #b.secret do b:typeLetter(b.secret:sub(i, i)) end

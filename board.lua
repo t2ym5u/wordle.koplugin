@@ -11,8 +11,8 @@ local _dir = debug.getinfo(1, "S").source:sub(2):match("(.*[/\\])") or "./"
 -- English used to be a single 716-word table inlined right here, serving as
 -- the answer pool AND as the whole notion of "is that even a word", so
 -- ordinary guesses (STARE, TEARS, IRATE, NOTES, FJORD, LYMPH...) came back
--- as "not a word". guesses_<lang>.lua is optional -- French ships answers
--- only for now and behaves exactly as before.
+-- as "not a word". guesses_<lang>.lua is optional; French has had one since
+-- 2026-11-24 (tools/build_guesses_fr.py: Grammalecte lexicon forms).
 --
 -- Loaded lazily: the English guess list alone is several thousand words, and
 -- a player who never opens Wordle should not pay for it. Only the language
@@ -40,7 +40,7 @@ local function loadLang(lang)
     entry.answers = (answers_fn and answers_fn()) or {}
     for _, w in ipairs(entry.answers) do entry.valid[w] = true end
     -- A blocklisted word (blocklist.lua) stays a valid guess but is never
-    -- the answer: French has no separate guess list to move it to.
+    -- the answer: it is filtered here, so the answer lists stay as shipped.
     entry.answers = Blocklist.filter(entry.answers, lang)
 
     -- Every answer is also a valid guess, so guesses_<lang>.lua only needs to
